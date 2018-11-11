@@ -185,18 +185,18 @@ static CScript CombineMultisig(const CScript& scriptPubKey, const CTransaction& 
     // Build a map of pubkey -> signature by matching sigs to pubkeys:
     assert(vSolutions.size() > 1);
     unsigned int nSigsRequired = vSolutions.front()[0];
-    unsigned int nPubKeys = vSolutions.size() - 2;
-    std::map<valtype, valtype> sigs;
-    for (const valtype &sig : allsigs) {
-        for (unsigned int i = 0; i < nPubKeys; i++) {
-            const valtype &pubkey = vSolutions[i + 1];
-            // Already got a sig for this pubkey
-            if (sigs.count(pubkey)) {
-                continue;
-            }
+    unsigned int nPubKeys = vSolutions.size()-2;
+    map<valtype, valtype> sigs;
+    BOOST_FOREACH(const valtype& sig, allsigs)
+    {
+        for (unsigned int i = 0; i < nPubKeys; i++)
+        {
+            const valtype& pubkey = vSolutions[i+1];
+            if (sigs.count(pubkey))
+                continue; // Already got a sig for this pubkey
 
-            if (checker.CheckSig(sig, pubkey, scriptPubKey,
-                                 STANDARD_SCRIPT_VERIFY_FLAGS)) {
+            if (TransactionSignatureChecker(&txTo, nIn).CheckSig(sig, pubkey, scriptPubKey))
+            {
                 sigs[pubkey] = sig;
                 break;
             }
