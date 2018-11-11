@@ -97,9 +97,9 @@ enum opcodetype
 
     // splice ops
     OP_CAT = 0x7e,
-    OP_SPLIT = 0x7f,   // after monolith upgrade (May 2018)
-    OP_NUM2BIN = 0x80, // after monolith upgrade (May 2018)
-    OP_BIN2NUM = 0x81, // after monolith upgrade (May 2018)
+    OP_SPLIT = 0x7f,
+    OP_NUM2BIN = 0x80,
+    OP_BIN2NUM = 0x81,
     OP_SIZE = 0x82,
 
     // bit logic
@@ -156,8 +156,8 @@ enum opcodetype
     OP_CHECKMULTISIG = 0xae,
     OP_CHECKMULTISIGVERIFY = 0xaf,
     OP_DETERMINISTICRANDOM = 0xc0,
-    OP_CHECKSIGFROMSTACK = 0xc1,
-    OP_CHECKSIGFROMSTACKVERIFY = 0xc2,
+    OP_CHECKSIGFROMSTACK = 0xd1, // conflicted with zerocoin
+    OP_CHECKSIGFROMSTACKVERIFY = 0xd2, // new values
 
     // expansion
     OP_NOP1 = 0xb0,
@@ -176,6 +176,7 @@ enum opcodetype
     // zerocoin
     OP_ZEROCOINMINT = 0xc1,
     OP_ZEROCOINSPEND = 0xc2,
+
     // More crypto
     OP_CHECKDATASIG = 0xba,
     OP_CHECKDATASIGVERIFY = 0xbb,
