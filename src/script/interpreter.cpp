@@ -977,20 +977,37 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     case OP_HASH160:
                     case OP_HASH256: {
                         // (in -- hash)
-                        if (stack.size() < 1)
-                            return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
-                        valtype& vch = stacktop(-1);
-                        valtype vchHash((opcode == OP_RIPEMD160 || opcode == OP_SHA1 || opcode == OP_HASH160) ? 20 : 32);
-                        if (opcode == OP_RIPEMD160)
-                            CRIPEMD160().Write(begin_ptr(vch), vch.size()).Finalize(begin_ptr(vchHash));
-                        else if (opcode == OP_SHA1)
-                            CSHA1().Write(begin_ptr(vch), vch.size()).Finalize(begin_ptr(vchHash));
-                        else if (opcode == OP_SHA256)
-                            CSHA256().Write(begin_ptr(vch), vch.size()).Finalize(begin_ptr(vchHash));
-                        else if (opcode == OP_HASH160)
-                            CHash160().Write(begin_ptr(vch), vch.size()).Finalize(begin_ptr(vchHash));
-                        else if (opcode == OP_HASH256)
-                            CHash256().Write(begin_ptr(vch), vch.size()).Finalize(begin_ptr(vchHash));
+                        if (stack.size() < 1) {
+                            return set_error(
+                                serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
+                        }
+                        valtype &vch = stacktop(-1);
+                        valtype vchHash((opcode == OP_RIPEMD160 ||
+                                         opcode == OP_SHA1 ||
+                                         opcode == OP_HASH160)
+                                            ? 20
+                                            : 32);
+                        if (opcode == OP_RIPEMD160) {
+                            CRIPEMD160()
+                                .Write(vch.data(), vch.size())
+                                .Finalize(vchHash.data());
+                        } else if (opcode == OP_SHA1) {
+                            CSHA1()
+                                .Write(vch.data(), vch.size())
+                                .Finalize(vchHash.data());
+                        } else if (opcode == OP_SHA256) {
+                            CSHA256()
+                                .Write(vch.data(), vch.size())
+                                .Finalize(vchHash.data());
+                        } else if (opcode == OP_HASH160) {
+                            CHash160()
+                                .Write(vch.data(), vch.size())
+                                .Finalize(vchHash.data());
+                        } else if (opcode == OP_HASH256) {
+                            CHash256()
+                                .Write(vch.data(), vch.size())
+                                .Finalize(vchHash.data());
+                        }
                         popstack(stack);
                         stack.push_back(vchHash);
                     } break;
@@ -1574,16 +1591,19 @@ uint256 SignatureHash(const CScript& scriptCode, const CTransaction& txTo, unsig
     return ss.GetHash();
 }
 
-bool TransactionSignatureChecker::VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& pubkey, const uint256& sighash) const
-{
+bool BaseSignatureChecker::VerifySignature(const std::vector<uint8_t> &vchSig,
+                                           const CPubKey &pubkey,
+                                           const uint256 &sighash) const {
     return pubkey.Verify(sighash, vchSig);
 }
 
-bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn, const vector<unsigned char>& vchPubKey, const CScript& scriptCode) const
-{
+bool TransactionSignatureChecker::CheckSig(
+    const std::vector<uint8_t> &vchSigIn, const std::vector<uint8_t> &vchPubKey,
+    const CScript &scriptCode, uint32_t flags) const {
     CPubKey pubkey(vchPubKey);
-    if (!pubkey.IsValid())
+    if (!pubkey.IsValid()) {
         return false;
+    }
 
     // Hash type is one byte tacked on to the end of the signature
     vector<unsigned char> vchSig(vchSigIn);
@@ -1718,30 +1738,35 @@ bool VerifyScript(const CScript &scriptSig, const CScript &scriptPubKey,
     }
 
     // Additional validation for spend-to-script-hash transactions:
-    if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash())
-    {
+    if ((flags & SCRIPT_VERIFY_P2SH) && scriptPubKey.IsPayToScriptHash()) {
         // scriptSig must be literals-only or validation fails
-        if (!scriptSig.IsPushOnly())
+        if (!scriptSig.IsPushOnly()) {
             return set_error(serror, SCRIPT_ERR_SIG_PUSHONLY);
+        }
 
-        // stackCopy cannot be empty here, because if it was the
-        // P2SH  HASH <> EQUAL  scriptPubKey would be evaluated with
-        // an empty stack and the EvalScript above would return false.
-        assert(!stackCopy.empty());
+        // Restore stack.
+        swap(stack, stackCopy);
 
-        const valtype& pubKeySerialized = stackCopy.back();
+        // stack cannot be empty here, because if it was the P2SH  HASH <> EQUAL
+        // scriptPubKey would be evaluated with an empty stack and the
+        // EvalScript above would return false.
+        assert(!stack.empty());
+
+        const valtype &pubKeySerialized = stack.back();
         CScript pubKey2(pubKeySerialized.begin(), pubKeySerialized.end());
-        popstack(stackCopy);
+        popstack(stack);
 
-        if (!EvalScript(stackCopy, pubKey2, flags, checker, serror))
+        if (!EvalScript(stack, pubKey2, flags, checker, serror)) {
             // serror is set
             return false;
-        if (stackCopy.empty())
+        }
+        if (stack.empty()) {
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-        if (!CastToBool(stackCopy.back()))
+        }
+        if (!CastToBool(stack.back())) {
             return set_error(serror, SCRIPT_ERR_EVAL_FALSE);
-        else
-            return set_success(serror);
+        }
+    }
 
     // The CLEANSTACK check is only performed after potential P2SH evaluation,
     // as the non-P2SH evaluation of a P2SH script will obviously not result in
