@@ -8,6 +8,7 @@
 #include "script.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
+#include "script/interpreter.h"
 
 #include <algorithm>
 
@@ -397,7 +398,7 @@ uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
                 if (fAccurate && lastOpcode >= OP_1 && lastOpcode <= OP_16) {
                     n += DecodeOP_N(lastOpcode);
                 } else {
-                    n += MAX_PUBKEYS_PER_MULTISIG;
+                    n += 20;
                 }
                 break;
             default:

@@ -171,18 +171,25 @@ bool static IsDefinedHashtypeSignature(const valtype &vchSig) {
     return true;
 }
 
-bool static CheckSignatureEncoding(const valtype &vchSig, unsigned int flags, ScriptError* serror) {
+bool CheckSignatureEncoding(const vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror) {
     // Empty signature. Not strictly DER encoded, but allowed to provide a
     // compact way to provide an invalid signature for use with CHECK(MULTI)SIG
     if (vchSig.size() == 0) {
         return true;
     }
-    if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_STRICTENC)) != 0 && !IsValidSignatureEncoding(vchSig)) {
+    bool no_hash_byte = (flags & SCRIPT_NO_SIGHASH_BYTE) == SCRIPT_NO_SIGHASH_BYTE;
+    std::vector<unsigned char> vchSigCopy(vchSig.begin(), vchSig.begin() + vchSig.size());
+    // Push a dummy sighash byte to pass checks
+    if (no_hash_byte) {
+        vchSigCopy.push_back(SIGHASH_ALL);
+    }
+
+    if ((flags & (SCRIPT_VERIFY_DERSIG | SCRIPT_VERIFY_LOW_S | SCRIPT_VERIFY_STRICTENC)) != 0 && !IsValidSignatureEncoding(vchSigCopy)) {
         return set_error(serror, SCRIPT_ERR_SIG_DER);
-    } else if ((flags & SCRIPT_VERIFY_LOW_S) != 0 && !IsLowDERSignature(vchSig, serror)) {
+    } else if ((flags & SCRIPT_VERIFY_LOW_S) != 0 && !IsLowDERSignature(vchSigCopy, serror)) {
         // serror is set
         return false;
-    } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsDefinedHashtypeSignature(vchSig)) {
+    } else if ((flags & SCRIPT_VERIFY_STRICTENC) != 0 && !IsDefinedHashtypeSignature(vchSigCopy)) {
         return set_error(serror, SCRIPT_ERR_SIG_HASHTYPE);
     }
     return true;
@@ -1055,7 +1062,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype &vchMessage = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        if (!CheckDataSignatureEncoding(vchSig, flags,
+                        if (!CheckSignatureEncoding(vchSig, flags,
                                                         serror) ||
                             !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             // serror is set
@@ -1151,7 +1158,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                             // pubkey/signature evaluation distinguishable by
                             // CHECKMULTISIG NOT if the STRICTENC flag is set.
                             // See the script_(in)valid tests for details.
-                            if (!CheckTransactionSignatureEncoding(
+                            if (!CheckSignatureEncoding(
                                     vchSig, flags, serror) ||
                                 !CheckPubKeyEncoding(vchPubKey, flags,
                                                      serror)) {
@@ -1233,7 +1240,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype& vchPubKey = stacktop(-1);
 
                         // Sigs from stack have no hash byte ever
-                        if (!CheckSignatureEncoding(vchSig, (flags | SCRIPT_NO_SIGHASH_BYTE), serror) || !CheckPubKeyEncoding(vchPubKey, flags, sigversion, serror)) {
+                        if (!CheckSignatureEncoding(vchSig, (flags | SCRIPT_NO_SIGHASH_BYTE), serror) || !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             //serror is set
                             return false;
                         }

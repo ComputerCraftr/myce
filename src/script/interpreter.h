@@ -96,6 +96,10 @@ enum
     //
     SCRIPT_VERIFY_NULLFAIL = (1U << 14),
 
+    // Signature checking assumes no sighash byte after the DER signature
+    //
+    SCRIPT_NO_SIGHASH_BYTE = (1U << 16),
+
     // Is OP_CHECKDATASIG and variant are enabled.
     //
     SCRIPT_ENABLE_CHECKDATASIG = (1U << 18)

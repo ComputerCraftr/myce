@@ -774,7 +774,7 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
                 nArgsExpected += tmpExpected;
             } else {
                 // Any other Script with less than 15 sigops OK:
-                unsigned int sigops = subscript.GetSigOpCount(true);
+                unsigned int sigops = subscript.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, true);
                 // ... extra data left on the stack after execution is OK, too:
                 return (sigops <= MAX_P2SH_SIGOPS);
             }
@@ -791,10 +791,10 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx)
 {
     unsigned int nSigOps = 0;
     BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-        nSigOps += txin.scriptSig.GetSigOpCount(false);
+        nSigOps += txin.scriptSig.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, false);
     }
     BOOST_FOREACH (const CTxOut& txout, tx.vout) {
-        nSigOps += txout.scriptPubKey.GetSigOpCount(false);
+        nSigOps += txout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, false);
     }
     return nSigOps;
 }
@@ -808,7 +808,7 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& in
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxOut& prevout = inputs.GetOutputFor(tx.vin[i]);
         if (prevout.scriptPubKey.IsPayToScriptHash())
-            nSigOps += prevout.scriptPubKey.GetSigOpCount(tx.vin[i].scriptSig);
+            nSigOps += prevout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, tx.vin[i].scriptSig);
     }
     return nSigOps;
 }
