@@ -5411,7 +5411,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             Misbehaving(pfrom->GetId(), 100);
             return false;
         }
-        // Ban peers that have not updated by the time zerocoin, cltv, and csv are deployed
+        // Ban peers that have not updated by the time zerocoin, cltv, csv, and cdsv are deployed
         if (pfrom->nVersion < 70915 && chainActive.Height() + 1 >= Params().Zerocoin_StartHeight()) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
