@@ -13,6 +13,7 @@
 #include "script/standard.h"
 #include "uint256.h"
 #include "util.h"
+#include "script/interpreter.h"
 
 #include <boost/foreach.hpp>
 
