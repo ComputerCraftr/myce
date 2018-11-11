@@ -1003,7 +1003,7 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                         valtype &vchSig = stacktop(-2);
                         valtype &vchPubKey = stacktop(-1);
 
-                        if (!CheckTransactionSignatureEncoding(vchSig, flags,
+                        if (!CheckSignatureEncoding(vchSig, flags,
                                                                serror) ||
                             !CheckPubKeyEncoding(vchPubKey, flags, serror)) {
                             // serror is set

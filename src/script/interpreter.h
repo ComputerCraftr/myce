@@ -1,5 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2017-2018 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -102,45 +103,47 @@ enum
 
 uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
-class BaseSignatureChecker
-{
+class BaseSignatureChecker {
 public:
-    virtual bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const
-    {
+    virtual bool VerifySignature(const std::vector<uint8_t> &vchSig,
+                                 const CPubKey &vchPubKey,
+                                 const uint256 &sighash) const;
+
+    virtual bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                          const std::vector<uint8_t> &vchPubKey,
+                          const CScript &scriptCode, uint32_t flags) const {
         return false;
     }
 
-    virtual bool CheckLockTime(const CScriptNum& nLockTime) const
-    {
-         return false;
+    virtual bool CheckLockTime(const CScriptNum &nLockTime) const {
+        return false;
     }
 
-    virtual bool CheckSequence(const CScriptNum& nSequence) const
-    {
-         return false;
+    virtual bool CheckSequence(const CScriptNum &nSequence) const {
+        return false;
     }
 
     virtual ~BaseSignatureChecker() {}
 };
 
-class TransactionSignatureChecker : public BaseSignatureChecker
-{
+class TransactionSignatureChecker : public BaseSignatureChecker {
 private:
-    const CTransaction* txTo;
+    const CTransaction *txTo;
     unsigned int nIn;
-
-protected:
-    virtual bool VerifySignature(const std::vector<unsigned char>& vchSig, const CPubKey& vchPubKey, const uint256& sighash) const;
 
 public:
     TransactionSignatureChecker(const CTransaction* txToIn, unsigned int nInIn) : txTo(txToIn), nIn(nInIn) {}
-    bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const;
-    bool CheckLockTime(const CScriptNum& nLockTime) const;
-    bool CheckSequence(const CScriptNum& nSequence) const;
+
+    // The overriden functions are now final.
+    bool CheckSig(const std::vector<uint8_t> &scriptSig,
+                  const std::vector<uint8_t> &vchPubKey,
+                  const CScript &scriptCode,
+                  uint32_t flags) const final override;
+    bool CheckLockTime(const CScriptNum &nLockTime) const final override;
+    bool CheckSequence(const CScriptNum &nSequence) const final override;
 };
 
-class MutableTransactionSignatureChecker : public TransactionSignatureChecker
-{
+class MutableTransactionSignatureChecker : public TransactionSignatureChecker {
 private:
     const CTransaction txTo;
 

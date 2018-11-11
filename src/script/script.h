@@ -216,13 +216,12 @@ class CScriptNum {
      * arithmetic is done or the result is interpreted as an integer.
      */
 public:
-    static const size_t MAXIMUM_ELEMENT_SIZE = 4;
-
-    static const size_t nDefaultMaxNumSize = 4;
     explicit CScriptNum(const int64_t &n) { m_value = n; }
 
+    static const size_t nDefaultMaxNumSize = 4;
+
     explicit CScriptNum(const std::vector<uint8_t> &vch, bool fRequireMinimal,
-                        const size_t nMaxNumSize = MAXIMUM_ELEMENT_SIZE) {
+                        const size_t nMaxNumSize = nDefaultMaxNumSize) {
         if (vch.size() > nMaxNumSize) {
             throw scriptnum_error("script number overflow");
         }
@@ -234,7 +233,7 @@ public:
 
     static bool IsMinimallyEncoded(
         const std::vector<uint8_t> &vch,
-        const size_t nMaxNumSize = CScriptNum::MAXIMUM_ELEMENT_SIZE);
+        const size_t nMaxNumSize = CScriptNum::nDefaultMaxNumSize);
 
     static bool MinimallyEncode(std::vector<uint8_t> &data);
 
@@ -634,19 +633,18 @@ public:
     }
 
     /**
-     * Pre-version-0.6, Bitcoin always counted CHECKMULTISIGs
-     * as 20 sigops. With pay-to-script-hash, that changed:
-     * CHECKMULTISIGs serialized in scriptSigs are
-     * counted more accurately, assuming they are of the form
+     * Pre-version-0.6, Bitcoin always counted CHECKMULTISIGs as 20 sigops. With
+     * pay-to-script-hash, that changed: CHECKMULTISIGs serialized in scriptSigs
+     * are counted more accurately, assuming they are of the form
      *  ... OP_N CHECKMULTISIG ...
      */
-    unsigned int GetSigOpCount(bool fAccurate) const;
+    uint32_t GetSigOpCount(uint32_t flags, bool fAccurate) const;
 
     /**
-     * Accurately count sigOps, including sigOps in
-     * pay-to-script-hash transactions:
+     * Accurately count sigOps, including sigOps in pay-to-script-hash
+     * transactions:
      */
-    unsigned int GetSigOpCount(const CScript& scriptSig) const;
+    uint32_t GetSigOpCount(uint32_t flags, const CScript &scriptSig) const;
 
     bool IsNormalPaymentScript() const;
     bool IsPayToScriptHash() const;

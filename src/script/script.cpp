@@ -431,7 +431,7 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     }
 
     /// ... and return its opcount:
-    CScript subscript(vData.begin(), vData.end());
+    CScript subscript(data.begin(), data.end());
     return subscript.GetSigOpCount(flags, true);
 }
 
