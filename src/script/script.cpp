@@ -1,27 +1,17 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Copyright (c) 2017-2018 The PIVX developers
 // Copyright (c) 2018 The Myce developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "script.h"
+
+#include "script/script_flags.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 
 #include <algorithm>
-
-namespace {
-inline std::string ValueString(const std::vector<unsigned char>& vch)
-{
-    if (vch.size() <= 4)
-        return strprintf("%d", CScriptNum(vch, false).getint());
-    else
-        return HexStr(vch);
-}
-} // anon namespace
-
-using namespace std;
 
 const char *GetOpName(opcodetype opcode) {
     switch (opcode) {
@@ -293,6 +283,80 @@ const char *GetOpName(opcodetype opcode) {
     }
 }
 
+bool CScriptNum::IsMinimallyEncoded(const std::vector<uint8_t> &vch,
+                                    const size_t nMaxNumSize) {
+    if (vch.size() > nMaxNumSize) {
+        return false;
+    }
+
+    if (vch.size() > 0) {
+        // Check that the number is encoded with the minimum possible number
+        // of bytes.
+        //
+        // If the most-significant-byte - excluding the sign bit - is zero
+        // then we're not minimal. Note how this test also rejects the
+        // negative-zero encoding, 0x80.
+        if ((vch.back() & 0x7f) == 0) {
+            // One exception: if there's more than one byte and the most
+            // significant bit of the second-most-significant-byte is set it
+            // would conflict with the sign bit. An example of this case is
+            // +-255, which encode to 0xff00 and 0xff80 respectively.
+            // (big-endian).
+            if (vch.size() <= 1 || (vch[vch.size() - 2] & 0x80) == 0) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool CScriptNum::MinimallyEncode(std::vector<uint8_t> &data) {
+    if (data.size() == 0) {
+        return false;
+    }
+
+    // If the last byte is not 0x00 or 0x80, we are minimally encoded.
+    uint8_t last = data.back();
+    if (last & 0x7f) {
+        return false;
+    }
+
+    // If the script is one byte long, then we have a zero, which encodes as an
+    // empty array.
+    if (data.size() == 1) {
+        data = {};
+        return true;
+    }
+
+    // If the next byte has it sign bit set, then we are minimaly encoded.
+    if (data[data.size() - 2] & 0x80) {
+        return false;
+    }
+
+    // We are not minimally encoded, we need to figure out how much to trim.
+    for (size_t i = data.size() - 1; i > 0; i--) {
+        // We found a non zero byte, time to encode.
+        if (data[i - 1] != 0) {
+            if (data[i - 1] & 0x80) {
+                // We found a byte with it sign bit set so we need one more
+                // byte.
+                data[i++] = last;
+            } else {
+                // the sign bit is clear, we can use it.
+                data[i - 1] |= last;
+            }
+
+            data.resize(i);
+            return true;
+        }
+    }
+
+    // If we the whole thing is zeros, then we have a zero.
+    data = {};
+    return true;
+}
+
 uint32_t CScript::GetSigOpCount(uint32_t flags, bool fAccurate) const {
     uint32_t n = 0;
     const_iterator pc = begin();
@@ -346,52 +410,26 @@ uint32_t CScript::GetSigOpCount(uint32_t flags,
     // get the last item that the scriptSig
     // pushes onto the stack:
     const_iterator pc = scriptSig.begin();
-    vector<unsigned char> data;
-    while (pc < scriptSig.end())
-    {
+    std::vector<uint8_t> vData;
+    while (pc < scriptSig.end()) {
         opcodetype opcode;
-        if (!scriptSig.GetOp(pc, opcode, data))
+        if (!scriptSig.GetOp(pc, opcode, vData)) {
             return 0;
-        if (opcode > OP_16)
+        }
+        if (opcode > OP_16) {
             return 0;
+        }
     }
 
     /// ... and return its opcount:
-    CScript subscript(data.begin(), data.end());
-    return subscript.GetSigOpCount(true);
+    CScript subscript(vData.begin(), vData.end());
+    return subscript.GetSigOpCount(flags, true);
 }
 
-bool CScript::IsNormalPaymentScript() const
-{
-    if(this->size() != 25) return false;
-
-    std::string str;
-    opcodetype opcode;
-    const_iterator pc = begin();
-    int i = 0;
-    while (pc < end())
-    {
-        GetOp(pc, opcode);
-
-        if(     i == 0 && opcode != OP_DUP) return false;
-        else if(i == 1 && opcode != OP_HASH160) return false;
-        else if(i == 3 && opcode != OP_EQUALVERIFY) return false;
-        else if(i == 4 && opcode != OP_CHECKSIG) return false;
-        else if(i == 5) return false;
-
-        i++;
-    }
-
-    return true;
-}
-
-bool CScript::IsPayToScriptHash() const
-{
+bool CScript::IsPayToScriptHash() const {
     // Extra-fast test for pay-to-script-hash CScripts:
-    return (this->size() == 23 &&
-            this->at(0) == OP_HASH160 &&
-            this->at(1) == 0x14 &&
-            this->at(22) == OP_EQUAL);
+    return (this->size() == 23 && (*this)[0] == OP_HASH160 &&
+            (*this)[1] == 0x14 && (*this)[22] == OP_EQUAL);
 }
 
 bool CScript::IsZerocoinMint() const
@@ -409,53 +447,63 @@ bool CScript::IsZerocoinSpend() const
     return (this->at(0) == OP_ZEROCOINSPEND);
 }
 
-bool CScript::IsPushOnly(const_iterator pc) const
-{
-    while (pc < end())
-    {
+bool CScript::IsCommitment(const std::vector<uint8_t> &data) const {
+    // To ensure we have an immediate push, we limit the commitment size to 64
+    // bytes. In addition to the data themselves, we have 2 extra bytes:
+    // OP_RETURN and the push opcode itself.
+    if (data.size() > 64 || this->size() != data.size() + 2) {
+        return false;
+    }
+
+    if ((*this)[0] != OP_RETURN || (*this)[1] != data.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < data.size(); i++) {
+        if ((*this)[i + 2] != data[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// A witness program is any valid CScript that consists of a 1-byte push opcode
+// followed by a data push between 2 and 40 bytes.
+bool CScript::IsWitnessProgram(int &version,
+                               std::vector<uint8_t> &program) const {
+    if (this->size() < 4 || this->size() > 42) {
+        return false;
+    }
+    if ((*this)[0] != OP_0 && ((*this)[0] < OP_1 || (*this)[0] > OP_16)) {
+        return false;
+    }
+    if (size_t((*this)[1] + 2) == this->size()) {
+        version = DecodeOP_N((opcodetype)(*this)[0]);
+        program = std::vector<uint8_t>(this->begin() + 2, this->end());
+        return true;
+    }
+    return false;
+}
+
+bool CScript::IsPushOnly(const_iterator pc) const {
+    while (pc < end()) {
         opcodetype opcode;
-        if (!GetOp(pc, opcode))
+        if (!GetOp(pc, opcode)) {
             return false;
-        // Note that IsPushOnly() *does* consider OP_RESERVED to be a
-        // push-type opcode, however execution of OP_RESERVED fails, so
-        // it's not relevant to P2SH/BIP62 as the scriptSig would fail prior to
-        // the P2SH special validation code being executed.
-        if (opcode > OP_16)
+        }
+
+        // Note that IsPushOnly() *does* consider OP_RESERVED to be a push-type
+        // opcode, however execution of OP_RESERVED fails, so it's not relevant
+        // to P2SH/BIP62 as the scriptSig would fail prior to the P2SH special
+        // validation code being executed.
+        if (opcode > OP_16) {
             return false;
+        }
     }
     return true;
 }
 
-bool CScript::IsPushOnly() const
-{
+bool CScript::IsPushOnly() const {
     return this->IsPushOnly(begin());
-}
-
-std::string CScript::ToString() const
-{
-    std::string str;
-    opcodetype opcode;
-    std::vector<unsigned char> vch;
-    const_iterator pc = begin();
-    while (pc < end())
-    {
-        if (!str.empty())
-            str += " ";
-        if (!GetOp(pc, opcode, vch))
-        {
-            str += "[error]";
-            return str;
-        }
-        if (0 <= opcode && opcode <= OP_PUSHDATA4) {
-            str += ValueString(vch);
-        } else {
-            str += GetOpName(opcode);
-            if (opcode == OP_ZEROCOINSPEND) {
-                //Zerocoinspend has no further op codes.
-                break;
-            }
-        }
-
-    }
-    return str;
 }
