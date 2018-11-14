@@ -1248,6 +1248,11 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
                     case OP_CHECKSIGFROMSTACK:
                     case OP_CHECKSIGFROMSTACKVERIFY:
                     {
+                        // Make sure this remains an error before activation.
+                        if ((flags & SCRIPT_ENABLE_CHECKDATASIG) == 0) {
+                            return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                        }
+
                         // (sig data pubkey  -- bool)
                         if (stack.size() < 3)
                             return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
@@ -1282,6 +1287,11 @@ bool EvalScript(std::vector<valtype> &stack, const CScript &script,
 
                     case OP_DETERMINISTICRANDOM:
                     {
+                        // Make sure this remains an error before activation.
+                        if ((flags & SCRIPT_ENABLE_CHECKDATASIG) == 0) {
+                            return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+                        }
+
                         if (stack.size() < 3)
                             return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
 
