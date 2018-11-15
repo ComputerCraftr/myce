@@ -100,7 +100,7 @@ enum
     //
     SCRIPT_NO_SIGHASH_BYTE = (1U << 16),
 
-    // Is OP_CHECKDATASIG and variant are enabled.
+    // If OP_CHECKDATASIG and additional opcodes are enabled
     //
     SCRIPT_ENABLE_CHECKDATASIG = (1U << 18)
 };
