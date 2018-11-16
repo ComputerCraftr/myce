@@ -128,7 +128,7 @@ public:
         nMinerThreads = 0;
         nTargetTimespan = 1 * 60; // Myce: 1 day
         nTargetSpacing = 1 * 60;  // Myce: 1 minute
-        nMaturity = 5;
+        nMaturity = 2;
         nMasternodeCountDrift = 20;
         nMaxMoneyOut = 250000000 * COIN;
 
@@ -137,7 +137,7 @@ public:
         nPOSStartBlock = 10000;
         nMandatoryUpgradeBlock = 378500;
         nUpgradeBlockVersion = 8;                                   // Block headers must be this version after upgrade block
-        nZerocoinStartHeight = 428000;                              // Activates zerocoin, cltv, csv, and cdsv
+        nZerocoinStartHeight = 434000;                              // Activates zerocoin, cltv, csv, and cdsv
         //nZerocoinStartTime = 4000000000;
         nModifierUpdateBlock = nZerocoinStartHeight - 1;
         nBlockEnforceSerialRange = -1;                              // Enforce serial range starting this block
@@ -337,7 +337,7 @@ public:
         nToCheckBlockUpgradeMajority = 1000;
         nMinerThreads = 1;
         nTargetTimespan = 24 * 60 * 60; // Myce: 1 day
-        nTargetSpacing = 1 * 60;        // Myce: 1 minutes
+        nTargetSpacing = 1 * 60;        // Myce: 1 minute
         bnProofOfWorkLimit = ~uint256(0) >> 1;
         genesis.nTime = 1454124731;
         genesis.nBits = 0x207fffff;
