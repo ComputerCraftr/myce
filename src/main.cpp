@@ -774,7 +774,7 @@ bool AreInputsStandard(const CTransaction& tx, const CCoinsViewCache& mapInputs)
                 nArgsExpected += tmpExpected;
             } else {
                 // Any other Script with less than 15 sigops OK:
-                unsigned int sigops = subscript.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, true);
+                unsigned int sigops = subscript.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, true);
                 // ... extra data left on the stack after execution is OK, too:
                 return (sigops <= MAX_P2SH_SIGOPS);
             }
@@ -791,10 +791,10 @@ unsigned int GetLegacySigOpCount(const CTransaction& tx)
 {
     unsigned int nSigOps = 0;
     BOOST_FOREACH (const CTxIn& txin, tx.vin) {
-        nSigOps += txin.scriptSig.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, false);
+        nSigOps += txin.scriptSig.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, false);
     }
     BOOST_FOREACH (const CTxOut& txout, tx.vout) {
-        nSigOps += txout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, false);
+        nSigOps += txout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, false);
     }
     return nSigOps;
 }
@@ -808,7 +808,7 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, const CCoinsViewCache& in
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         const CTxOut& prevout = inputs.GetOutputFor(tx.vin[i]);
         if (prevout.scriptPubKey.IsPayToScriptHash())
-            nSigOps += prevout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS | SCRIPT_ENABLE_CHECKDATASIG, tx.vin[i].scriptSig);
+            nSigOps += prevout.scriptPubKey.GetSigOpCount(STANDARD_SCRIPT_VERIFY_FLAGS, tx.vin[i].scriptSig);
     }
     return nSigOps;
 }
@@ -1427,15 +1427,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
                 hash.ToString(),
                 nFees, ::minRelayTxFee.GetFee(nSize) * 10000);
 
-
-        bool fNewProtocolActive = chainActive.Height() >= Params().Zerocoin_StartHeight();
-
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        int flags = STANDARD_SCRIPT_VERIFY_FLAGS;
-        if (fNewProtocolActive)
-            flags |= SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_MINIMALIF | SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_CHECKDATASIG;
-        if (!CheckInputs(tx, state, view, true, flags, true)) {
+        if (!CheckInputs(tx, state, view, true, STANDARD_SCRIPT_VERIFY_FLAGS, true)) {
             return error("AcceptToMemoryPool: : ConnectInputs failed %s", hash.ToString());
         }
 
@@ -1448,10 +1442,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
         // There is a similar check in CreateNewBlock() to prevent creating
         // invalid blocks, however allowing such transactions into the mempool
         // can be exploited as a DoS attack.
-        flags = MANDATORY_SCRIPT_VERIFY_FLAGS;
-        if (fNewProtocolActive)
-            flags |= SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_MINIMALIF | SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_CHECKDATASIG;
-        if (!CheckInputs(tx, state, view, true, flags, true)) {
+        if (!CheckInputs(tx, state, view, true, MANDATORY_SCRIPT_VERIFY_FLAGS, true)) {
             return error("AcceptToMemoryPool: : BUG! PLEASE REPORT THIS! ConnectInputs failed against MANDATORY but not STANDARD flags %s", hash.ToString());
         }
 
@@ -1637,14 +1628,9 @@ bool AcceptableInputs(CTxMemPool& pool, CValidationState& state, const CTransact
                 hash.ToString(),
                 nFees, ::minRelayTxFee.GetFee(nSize) * 10000);
 
-        bool fNewProtocolActive = chainActive.Height() >= Params().Zerocoin_StartHeight();
-
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        int flags = STANDARD_SCRIPT_VERIFY_FLAGS;
-        if (fNewProtocolActive)
-            flags |= SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_MINIMALIF | SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_CHECKDATASIG;
-        if (!CheckInputs(tx, state, view, false, flags, true)) {
+        if (!CheckInputs(tx, state, view, false, STANDARD_SCRIPT_VERIFY_FLAGS, true)) {
             return error("AcceptableInputs: : ConnectInputs failed %s", hash.ToString());
         }
 
@@ -2068,7 +2054,7 @@ void UpdateCoins(const CTransaction& tx, CValidationState& state, CCoinsViewCach
 bool CScriptCheck::operator()()
 {
     const CScript& scriptSig = ptxTo->vin[nIn].scriptSig;
-    if (chainActive.Height() >= Params().Zerocoin_StartHeight() && !VerifyScript(scriptSig, scriptPubKey, nFlags, CachingTransactionSignatureChecker(ptxTo, nIn, cacheStore), &error)) {
+    if (chainActive.Height() >= Params().WALLET_UPGRADE_BLOCK() && !VerifyScript(scriptSig, scriptPubKey, nFlags, CachingTransactionSignatureChecker(ptxTo, nIn, cacheStore), &error)) {
         return ::error("CScriptCheck(): %s:%d VerifySignature failed: %s", ptxTo->GetHash().ToString(), nIn, ScriptErrorString(error));
     }
     return true;
@@ -2701,12 +2687,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     bool fScriptChecks = pindex->nHeight >= Checkpoints::GetTotalBlocksEstimate();
 
-    // If scripts won't be checked anyways, don't bother seeing if new protocol is active
-    bool fNewProtocolActive = false;
-    if (fScriptChecks && pindex->pprev) {
-        fNewProtocolActive = pindex->pprev->nHeight >= Params().Zerocoin_StartHeight();
-    }
-
     // Do not allow blocks that contain transactions which 'overwrite' older transactions,
     // unless those are already completely spent.
     // If such overwrites are allowed, coinbases and transactions depending upon those
@@ -2844,11 +2824,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             nValueIn += view.GetValueIn(tx);
 
             std::vector<CScriptCheck> vChecks;
-            unsigned int flags = MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_DERSIG;
-            if (fNewProtocolActive)
-                flags |= SCRIPT_VERIFY_CLEANSTACK | SCRIPT_VERIFY_MINIMALIF | SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY | SCRIPT_ENABLE_CHECKDATASIG;
-
-            if (!CheckInputs(tx, state, view, fScriptChecks, flags, false, nScriptCheckThreads ? &vChecks : NULL))
+            if (!CheckInputs(tx, state, view, fScriptChecks, MANDATORY_SCRIPT_VERIFY_FLAGS, false, nScriptCheckThreads ? &vChecks : NULL))
                 return false;
             control.Add(vChecks);
         }
@@ -3818,7 +3794,7 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
                 return state.DoS(50, error("CheckBlockHeader() : block version must be below %d before upgrade block", Params().WALLET_UPGRADE_VERSION()), REJECT_INVALID, "block-version");
         }
 
-        // Version 9 header must be used after Params().Zerocoin_StartHeight(). And never before.
+        // Version 10 header must be used after Params().Zerocoin_StartHeight(). And never before.
         if (mapBlockIndex.at(block.hashPrevBlock)->nHeight+1 >= Params().Zerocoin_StartHeight())
         {
             if(block.nVersion < Params().Zerocoin_HeaderVersion())
@@ -5411,8 +5387,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             Misbehaving(pfrom->GetId(), 100);
             return false;
         }
-        // Ban peers that have not updated by the time zerocoin, cltv, csv, and cdsv are deployed
-        if (pfrom->nVersion < 70915 && chainActive.Height() + 1 >= Params().Zerocoin_StartHeight()) {
+        // Ban peers that have not updated in a reasonable amount of time (subject to change)
+        if (pfrom->nVersion < 70915 && chainActive.Height() + 1 >= 550000) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
             return false;
