@@ -109,7 +109,7 @@ static void CheckBlockIndex();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "DarkNet Signed Message:\n";
+const string strMessageMagic = "Myce Signed Message:\n";
 
 // Internal stuff
 namespace
@@ -2059,9 +2059,6 @@ bool CScriptCheck::operator()()
     }
     return true;
 }
-
-CBitcoinAddress addressExp1("DQZzqnSR6PXxagep1byLiRg9ZurCZ5KieQ");
-CBitcoinAddress addressExp2("DTQYdnNqKuEHXyNeeYhPQGGGdqHbXYwjpj");
 
 map<COutPoint, COutPoint> mapInvalidOutPoints;
 map<CBigNum, CAmount> mapInvalidSerials;
@@ -5387,8 +5384,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             Misbehaving(pfrom->GetId(), 100);
             return false;
         }
-        // Ban peers that have not updated in a reasonable amount of time (subject to change)
-        if (pfrom->nVersion < 70915 && chainActive.Height() + 1 >= 550000) {
+        // Ban peers that have not updated in a reasonable amount of time
+        if (pfrom->nVersion < 70915 && chainActive.Height() + 1 >= Params().ModifierUpgradeBlock()) {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
             return false;

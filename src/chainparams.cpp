@@ -59,13 +59,14 @@ static Checkpoints::MapCheckpoints mapCheckpoints =
     (341500, uint256("769f485854697c20088703e205017b96853f1a0bfbd288110bed45d39a3a60b4"))
     (382600, uint256("552836176069ce72494583d566ee0427abb47b32c70138cb0a16a6fa8608caf1"))
     (384200, uint256("fab86b440d95a252b477128bd325153106a7220e3c7b5cbc74542f68945aa4f7"))
-    (412450, uint256("32e0e14e4b18d2ef1b598f03a86496a690709899141e70885e2e23c0533985a4"));
+    (412450, uint256("32e0e14e4b18d2ef1b598f03a86496a690709899141e70885e2e23c0533985a4"))
+    (525000, uint256("eb7f2d1c91266719c5323f41920cd963ffa7f79a01dacf41601046b06e182ff5"));
 static const Checkpoints::CCheckpointData data = {
     &mapCheckpoints,
-    1540931951, // * UNIX timestamp of last checkpoint block
-    754474,     // * total number of transactions between genesis and last checkpoint
+    1548115819, // * UNIX timestamp of last checkpoint block
+    1029134,    // * total number of transactions between genesis and last checkpoint
                 //   (the tx=... number in the SetBestChain debug.log lines)
-    5000        // * estimated number of transactions per day after checkpoint
+    4000        // * estimated number of transactions per day after checkpoint
 };
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
@@ -139,7 +140,7 @@ public:
         nUpgradeBlockVersion = 8;                                   // Block headers must be this version after upgrade block
         nZerocoinStartHeight = 2100000000;                          // OFF
         //nZerocoinStartTime = 4000000000;
-        nModifierUpdateBlock = nZerocoinStartHeight - 1;
+        nModifierUpdateBlock = 600000;
         nBlockEnforceSerialRange = -1;                              // Enforce serial range starting this block
         nBlockRecalculateAccumulators = nZerocoinStartHeight + 10;  // Trigger a recalculation of accumulators
         nBlockFirstFraudulent = nZerocoinStartHeight;               // First block that bad serials emerged
