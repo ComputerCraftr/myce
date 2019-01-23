@@ -119,7 +119,7 @@ public:
         pchMessageStart[1] = 0x23;
         pchMessageStart[2] = 0x43;
         pchMessageStart[3] = 0x65;
-        vAlertPubKey = ParseHex("03e6f2c3cb4197c2b30f7e8520ba23ed7c1d8b40d1fdce125fa08629d4e95ba7ef");
+        vAlertPubKey = ParseHex("0358d5fb8000c49d38aaab6dc5d0c0a0322eff3090eff026963eb819dc3dec8439");
         nDefaultPort = 23511;
         bnProofOfWorkLimit = ~uint256(0) >> 16; // Myce starting difficulty is 1 / 2^12
         nMaxReorganizationDepth = 100;
@@ -204,7 +204,7 @@ public:
         fHeadersFirstSyncingActive = true;
 
         nPoolMaxTransactions = 3;
-        strSporkKey = "03e6f2c3cb4197c2b30f7e8520ba23ed7c1d8b40d1fdce125fa08629d4e95ba7ef";
+        strSporkKey = "0358d5fb8000c49d38aaab6dc5d0c0a0322eff3090eff026963eb819dc3dec8439";
         strSporkKeyOld = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
         strObfuscationPoolDummyAddress = "MKuuMqXZj75T2UidnBWotoN8oQavbyVenR";
         nStartMasternodePayments = 1403728576; //Wed, 25 Jun 2014 20:36:16 GMT

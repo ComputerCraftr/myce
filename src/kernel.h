@@ -11,14 +11,14 @@
 
 
 // MODIFIER_INTERVAL: time to elapse before new modifier is computed
-static const unsigned int MODIFIER_INTERVAL = 5;
-static const unsigned int MODIFIER_INTERVAL_TESTNET = 5;
+static const unsigned int MODIFIER_INTERVAL = 3 * 60;
+static const unsigned int MODIFIER_INTERVAL_TESTNET = 3 * 60;
 extern unsigned int nModifierInterval;
 extern unsigned int getIntervalVersion(bool fTestNet);
 
 // MODIFIER_INTERVAL_RATIO:
 // ratio of group interval length between the last group and the first group
-static const int MODIFIER_INTERVAL_RATIO = 100;
+static const int MODIFIER_INTERVAL_RATIO = 3;
 
 // Compute the hash modifier for proof-of-stake
 bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifier, int& nStakeModifierHeight, int64_t& nStakeModifierTime, bool fPrintProofOfStake);
