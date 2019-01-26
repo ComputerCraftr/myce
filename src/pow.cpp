@@ -44,8 +44,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     if (pindexLast->nHeight >= Params().POS_START_BLOCK()) {
         uint256 bnTargetLimit = (~uint256(0) >> 20);
-        int64_t nTargetSpacing = 60;
-        int64_t nTargetTimespan = 60 * 10;
+        int64_t nTargetSpacingOld = 60;
 
         int64_t nActualSpacing = 0;
 
@@ -61,17 +60,25 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         uint256 bnNew;
         bnNew.SetCompact(pindexPrev->nBits);
 
-        int64_t nInterval = nTargetTimespan / nTargetSpacing;
-        bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
-        bnNew /= ((nInterval + 1) * nTargetSpacing);
+        if (pindexLast->nHeight+1 >= Params().ModifierUpgradeBlock())
+        {
+            bnNew *= ((Params().Interval() - 1) * Params().TargetSpacing() + nActualSpacing + nActualSpacing);
+            bnNew /= ((Params().Interval() + 1) * Params().TargetSpacing());
+        }
+        else
+        {
+            int64_t nInterval = Params().TargetTimespan() / nTargetSpacingOld;
+            bnNew *= ((nInterval - 1) * nTargetSpacingOld + nActualSpacing + nActualSpacing);
+            bnNew /= ((nInterval + 1) * nTargetSpacingOld);
+        }
 
         int height = pindexLast->nHeight + 1;
 
         if (height < (Params().WALLET_UPGRADE_BLOCK()+10) && height >= Params().WALLET_UPGRADE_BLOCK())
             bnNew *= (int)pow(4.0, (double)(10+Params().WALLET_UPGRADE_BLOCK()-height)); // slash difficulty and gradually ramp back up over 10 blocks
 
-        if (height < (Params().Zerocoin_StartHeight()+10) && height >= Params().Zerocoin_StartHeight())
-            bnNew *= (int)pow(4.0, (double)(10+Params().Zerocoin_StartHeight()-height)); // slash difficulty and gradually ramp back up over 10 blocks
+        //if (height < (Params().Zerocoin_StartHeight()+10) && height >= Params().Zerocoin_StartHeight())
+            //bnNew *= (int)pow(4.0, (double)(10+Params().Zerocoin_StartHeight()-height)); // slash difficulty and gradually ramp back up over 10 blocks
 
         if (bnNew <= 0 || bnNew > bnTargetLimit)
             bnNew = bnTargetLimit;

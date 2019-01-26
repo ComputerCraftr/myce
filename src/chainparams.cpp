@@ -127,8 +127,8 @@ public:
         nRejectBlockOutdatedMajority = 10260; // 95%
         nToCheckBlockUpgradeMajority = 10800; // Approximate expected amount of blocks in 7 days (1440*7.5)
         nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // Myce: 1 day
-        nTargetSpacing = 1 * 60;  // Myce: 1 minute
+        nTargetTimespan = 10 * 60; // Myce: 10 minutes
+        nTargetSpacing = 64; // Myce: 64 seconds
         nMaturity = 5;
         nMasternodeCountDrift = 20;
         nMaxMoneyOut = 250000000 * COIN;
@@ -254,8 +254,8 @@ public:
         nRejectBlockOutdatedMajority = 5472; // 95%
         nToCheckBlockUpgradeMajority = 5760; // 4 days
         nMinerThreads = 0;
-        nTargetTimespan = 1 * 60; // Myce: 1 day
-        nTargetSpacing = 1 * 60;  // Myce: 1 minute
+        nTargetTimespan = 10 * 60; // Myce: 10 minutes
+        nTargetSpacing = 48; // Myce: 48 seconds
         nLastPOWBlock = 200;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
@@ -337,8 +337,8 @@ public:
         nRejectBlockOutdatedMajority = 950;
         nToCheckBlockUpgradeMajority = 1000;
         nMinerThreads = 1;
-        nTargetTimespan = 24 * 60 * 60; // Myce: 1 day
-        nTargetSpacing = 1 * 60;        // Myce: 1 minute
+        nTargetTimespan = 10 * 60; // Myce: 10 minutes
+        nTargetSpacing = 48; // Myce: 48 seconds
         bnProofOfWorkLimit = ~uint256(0) >> 1;
         genesis.nTime = 1454124731;
         genesis.nBits = 0x207fffff;
