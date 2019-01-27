@@ -714,7 +714,7 @@ unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans)
 bool IsStandardTx(const CTransaction& tx, string& reason)
 {
     AssertLockHeld(cs_main);
-    if (tx.nVersion > CTransaction::CURRENT_VERSION || tx.nVersion < 1) {
+    if (tx.nVersion > CTransaction::CURRENT_VERSION || tx.nVersion < 3) {
         reason = "version";
         return false;
     }
