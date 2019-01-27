@@ -6,6 +6,9 @@
 
 #include "pubkey.h"
 
+#include "eccryptoverify.h"
+#include "ecwrapper.h"
+
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
 
@@ -182,7 +185,15 @@ bool CPubKey::Verify(const uint256& hash, const std::vector<unsigned char>& vchS
     /* libsecp256k1's ECDSA verification requires lower-S signatures, which have
      * not historically been enforced in Bitcoin, so normalize them first. */
     secp256k1_ecdsa_signature_normalize(secp256k1_context_verify, &sig, &sig);
-    return secp256k1_ecdsa_verify(secp256k1_context_verify, &sig, hash.begin(), &pubkey);
+    if (secp256k1_ecdsa_verify(secp256k1_context_verify, &sig, hash.begin(), &pubkey)) {
+        return true;
+    } else {
+        CECKey key;
+        if (!key.SetPubKey(begin(), size()))
+            return false;
+        if (!key.Verify(hash, vchSig))
+            return false;
+    }
 }
 
 bool CPubKey::RecoverCompact(const uint256& hash, const std::vector<unsigned char>& vchSig)
