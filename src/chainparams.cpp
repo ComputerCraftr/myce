@@ -140,7 +140,7 @@ public:
         nUpgradeBlockVersion = 8;                                   // Block headers must be this version after upgrade block
         nZerocoinStartHeight = 2100000000;                          // OFF
         //nZerocoinStartTime = 4000000000;
-        nModifierUpdateBlock = 600000;
+        nModifierUpdateBlock = 538700;
         nBlockEnforceSerialRange = -1;                              // Enforce serial range starting this block
         nBlockRecalculateAccumulators = nZerocoinStartHeight + 10;  // Trigger a recalculation of accumulators
         nBlockFirstFraudulent = nZerocoinStartHeight;               // First block that bad serials emerged
@@ -183,7 +183,7 @@ public:
         assert(genesis.hashMerkleRoot == uint256("0x8ea58063fe9e14c45dbf5efab5b3812291074f6b1af5305b7b45647bdbfdea90"));
         assert(hashGenesisBlock == uint256("0x0000c74cc66c72cb1a327c5c1d4893ae5276aa50be49fb23cec21df1a2f20d87"));
 
-        vSeeds.push_back(CDNSSeedData("1", "zentec.ddns.net"));
+        //vSeeds.push_back(CDNSSeedData("1", "zentec.ddns.net"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1, 50);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1, 85);

@@ -1945,7 +1945,10 @@ int64_t GetBlockValue(int nHeight, bool fProofOfStake)
             nSubsidy = 20 * COIN;
         } else
         {
-            nSubsidy = 10 * COIN;
+            if (nHeight >= Params().ModifierUpgradeBlock())
+                nSubsidy = 10000 * COIN;
+            else
+                nSubsidy = 10 * COIN;
         }
     }
     else
