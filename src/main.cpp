@@ -3912,14 +3912,17 @@ bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, bool f
 
     if (block.GetHash() != Params().HashGenesisBlock())
     {
-        // Enforce version 8 after mandatory upgrade block
-        if (mapBlockIndex.at(block.hashPrevBlock)->nHeight+1 >= Params().WALLET_UPGRADE_BLOCK())
+        if(Params().NetworkID() == CBaseChainParams::MAIN)
         {
-            if (block.nVersion < Params().WALLET_UPGRADE_VERSION())
-                return state.DoS(50, error("CheckBlockHeader() : block version must be at least %d after upgrade block", Params().WALLET_UPGRADE_VERSION()), REJECT_INVALID, "block-version");
-        } else {
-            if (block.nVersion >= Params().WALLET_UPGRADE_VERSION())
-                return state.DoS(50, error("CheckBlockHeader() : block version must be below %d before upgrade block", Params().WALLET_UPGRADE_VERSION()), REJECT_INVALID, "block-version");
+            // Enforce version 8 after mandatory upgrade block
+            if (mapBlockIndex.at(block.hashPrevBlock)->nHeight+1 >= Params().WALLET_UPGRADE_BLOCK())
+            {
+                if (block.nVersion < Params().WALLET_UPGRADE_VERSION())
+                    return state.DoS(50, error("CheckBlockHeader() : block version must be at least %d after upgrade block", Params().WALLET_UPGRADE_VERSION()), REJECT_INVALID, "block-version");
+            } else {
+                if (block.nVersion >= Params().WALLET_UPGRADE_VERSION())
+                    return state.DoS(50, error("CheckBlockHeader() : block version must be below %d before upgrade block", Params().WALLET_UPGRADE_VERSION()), REJECT_INVALID, "block-version");
+            }
         }
 
         // Version 10 header must be used after Params().Zerocoin_StartHeight(). And never before.
