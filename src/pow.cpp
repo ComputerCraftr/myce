@@ -60,7 +60,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
         uint256 bnNew;
         bnNew.SetCompact(pindexPrev->nBits);
 
-        if (pindexLast->nHeight+1 >= Params().ModifierUpgradeBlock())
+        if (pindexLast->nHeight+1 >= Params().ModifierUpgradeBlock() || Params().NetworkID() != CBaseChainParams::MAIN)
         {
             bnNew *= ((Params().Interval() - 1) * Params().TargetSpacing() + nActualSpacing + nActualSpacing);
             bnNew /= ((Params().Interval() + 1) * Params().TargetSpacing());
@@ -72,7 +72,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
             bnNew /= ((nInterval + 1) * nTargetSpacingOld);
         }
 
-        if(Params().NetworkID() == CBaseChainParams::MAIN)
+        if (Params().NetworkID() == CBaseChainParams::MAIN)
         {
             int height = pindexLast->nHeight + 1;
 
@@ -175,7 +175,7 @@ unsigned int GetLegacyNextWorkRequired(const CBlockIndex* pindexLast, const CBlo
     return bnNew.GetCompact();
 }
 
-bool CheckProofOfWork(uint256 hash, int nVersion, unsigned int nBits)
+bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
     bool fNegative;
     bool fOverflow;
