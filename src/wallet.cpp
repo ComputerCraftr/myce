@@ -2158,6 +2158,9 @@ bool CWallet::MintableCoins()
     CAmount nBalance = GetBalance();
     CAmount nZyceBalance = GetZerocoinBalance(false);
 
+    if (IsInitialBlockDownload())
+        return false; // No coins to mint if we aren't synced
+
     // Regular YCE
     if (nBalance > 0) {
         if (mapArgs.count("-reservebalance") && !ParseMoney(mapArgs["-reservebalance"], nReserveBalance))

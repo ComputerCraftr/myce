@@ -1968,7 +1968,7 @@ int64_t GetBlockValue(int nHeight, bool fProofOfStake)
         {
             nSubsidy = 10 * COIN;
         } else {
-            nSubsidy = 0 * COIN;
+            nSubsidy = 10 * COIN;
         }
     }
     return nSubsidy;
@@ -4145,7 +4145,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
 
     // Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
     // if 750 of the last 1,000 blocks are version 2 or greater (51/100 if testnet):
-    if (CBlockIndex::IsSuperMajority(Params().WALLET_UPGRADE_VERSION(), pindexPrev, Params().EnforceBlockUpgradeMajority())) {
+    if (CBlockIndex::IsSuperMajority(Params().WALLET_UPGRADE_VERSION(), pindexPrev, Params().EnforceBlockUpgradeMajority()) || Params().NetworkID() != CBaseChainParams::MAIN) {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
