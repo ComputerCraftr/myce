@@ -144,7 +144,7 @@ public:
         nUpgradeBlockVersion = 8;                                   // Block headers must be this version after upgrade block
         nZerocoinStartHeight = 2100000000;                          // OFF
         //nZerocoinStartTime = 4000000000;
-        nModifierUpdateBlock = 600000;
+        nModifierUpdateBlock = 700000;
         nBlockEnforceSerialRange = -1;                              // Enforce serial range starting this block
         nBlockRecalculateAccumulators = nZerocoinStartHeight + 10;  // Trigger a recalculation of accumulators
         nBlockFirstFraudulent = nZerocoinStartHeight;               // First block that bad serials emerged
@@ -266,7 +266,7 @@ public:
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = -1; //approx Mon, 17 Apr 2017 04:00:00 GMT
         nMaxMoneyOut = 43199500 * COIN;
-        nZerocoinStartHeight = nPOSStartBlock;
+        nZerocoinStartHeight = 100000;
         //nZerocoinStartTime = 1501776000;
         nBlockEnforceSerialRange = -1; //Enforce serial range starting this block
         nBlockRecalculateAccumulators = nZerocoinStartHeight + 10; //Trigger a recalculation of accumulators
