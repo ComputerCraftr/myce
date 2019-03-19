@@ -261,7 +261,7 @@ public:
         nTargetTimespan = 10 * 60; // Myce: 10 minutes
         nTargetSpacing = 48; // Myce: 48 seconds
         nLastPOWBlock = 2100000000;
-        nPOSStartBlock = 500;
+        nPOSStartBlock = 50;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = -1; //approx Mon, 17 Apr 2017 04:00:00 GMT
