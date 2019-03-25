@@ -252,6 +252,7 @@ extern UniValue listspentzerocoins(const UniValue& params, bool fHelp);
 extern UniValue listzerocoinamounts(const UniValue& params, bool fHelp);
 extern UniValue mintzerocoin(const UniValue& params, bool fHelp);
 extern UniValue spendzerocoin(const UniValue& params, bool fHelp);
+extern UniValue spendrawzerocoin(const UniValue& params, bool fHelp);
 extern UniValue resetmintzerocoin(const UniValue& params, bool fHelp);
 extern UniValue resetspentzerocoin(const UniValue& params, bool fHelp);
 extern UniValue getarchivedzerocoin(const UniValue& params, bool fHelp);
@@ -293,6 +294,7 @@ extern UniValue getchaintips(const UniValue& params, bool fHelp);
 extern UniValue invalidateblock(const UniValue& params, bool fHelp);
 extern UniValue reconsiderblock(const UniValue& params, bool fHelp);
 extern UniValue getaccumulatorvalues(const UniValue& params, bool fHelp);
+extern UniValue getserials(const UniValue& params, bool fHelp);
 
 extern UniValue getpoolinfo(const UniValue& params, bool fHelp); // in rpcmasternode.cpp
 extern UniValue masternode(const UniValue& params, bool fHelp);
