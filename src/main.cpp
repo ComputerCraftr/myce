@@ -1322,7 +1322,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
         return state.DoS(10, error("AcceptToMemoryPool : Zerocoin transactions are temporarily disabled for maintenance"), REJECT_INVALID, "bad-tx");
 
     int chainHeight = chainActive.Height();
-    if (tx.ContainsZerocoins() && chainHeight < Params().Zerocoin_StartHeight() && !IsInitialBlockDownload())
+    if (chainHeight < Params().Zerocoin_StartHeight() && !IsInitialBlockDownload() && tx.ContainsZerocoins())
         return state.DoS(10, error("AcceptToMemoryPool: : Zerocoin is not yet active"), REJECT_INVALID, "bad-tx");
 
     if (!CheckTransaction(tx, chainHeight >= Params().Zerocoin_StartHeight(), true, state))
