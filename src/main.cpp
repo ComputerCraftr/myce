@@ -1918,9 +1918,8 @@ double ConvertBitsToDouble(unsigned int nBits)
 
 int64_t GetBlockValue(int nHeight, bool fProofOfStake)
 {
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight < 200 && nHeight > 0)
-            return 250000 * COIN;
+    if (Params().NetworkID() != CBaseChainParams::MAIN) {
+        return 100 * COIN;
     }
 
     int64_t nSubsidy = 0;
