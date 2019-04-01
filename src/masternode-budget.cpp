@@ -918,10 +918,10 @@ CAmount CBudgetManager::GetTotalBudget(int nHeight)
     CAmount nSubsidy = 0;
     int endHeight = nHeight + GetBudgetPaymentCycleBlocks();
     for (int height = nHeight; height < endHeight; height++) {
-        nSubsidy += GetBlockValue(height, height > Params().LAST_POW_BLOCK()) / 10; // 10% of block reward
+        nSubsidy += GetBlockValue(height, height > Params().LAST_POW_BLOCK());
     }
 
-    return nSubsidy;
+    return nSubsidy / 10; // 10% of block reward
 }
 
 void CBudgetManager::NewBlock()
