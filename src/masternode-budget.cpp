@@ -15,7 +15,6 @@
 #include "obfuscation.h"
 #include "util.h"
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 CBudgetManager budget;
 CCriticalSection cs_budget;
@@ -1593,11 +1592,11 @@ double CBudgetProposal::GetRatio()
     return ((double)(yeas) / (double)(yeas + nays));
 }
 
-int CBudgetProposal::GetYeas()
+int CBudgetProposal::GetYeas() const
 {
     int ret = 0;
 
-    std::map<uint256, CBudgetVote>::iterator it = mapVotes.begin();
+    std::map<uint256, CBudgetVote>::const_iterator it = mapVotes.begin();
     while (it != mapVotes.end()) {
         if ((*it).second.nVote == VOTE_YES && (*it).second.fValid) ret++;
         ++it;
@@ -1606,11 +1605,11 @@ int CBudgetProposal::GetYeas()
     return ret;
 }
 
-int CBudgetProposal::GetNays()
+int CBudgetProposal::GetNays() const
 {
     int ret = 0;
 
-    std::map<uint256, CBudgetVote>::iterator it = mapVotes.begin();
+    std::map<uint256, CBudgetVote>::const_iterator it = mapVotes.begin();
     while (it != mapVotes.end()) {
         if ((*it).second.nVote == VOTE_NO && (*it).second.fValid) ret++;
         ++it;
@@ -1619,11 +1618,11 @@ int CBudgetProposal::GetNays()
     return ret;
 }
 
-int CBudgetProposal::GetAbstains()
+int CBudgetProposal::GetAbstains() const
 {
     int ret = 0;
 
-    std::map<uint256, CBudgetVote>::iterator it = mapVotes.begin();
+    std::map<uint256, CBudgetVote>::const_iterator it = mapVotes.begin();
     while (it != mapVotes.end()) {
         if ((*it).second.nVote == VOTE_ABSTAIN && (*it).second.fValid) ret++;
         ++it;
@@ -1736,7 +1735,7 @@ bool CBudgetVote::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
     CKey keyCollateralAddress;
 
     std::string errorMessage;
-    std::string strMessage = vin.prevout.ToStringShort() + nProposalHash.ToString() + boost::lexical_cast<std::string>(nVote) + boost::lexical_cast<std::string>(nTime);
+    std::string strMessage = vin.prevout.ToStringShort() + nProposalHash.ToString() + std::to_string(nVote) + std::to_string(nTime);
 
     if (!obfuScationSigner.SignMessage(strMessage, errorMessage, vchSig, keyMasternode)) {
         LogPrint("mnbudget","CBudgetVote::Sign - Error upon calling SignMessage");
@@ -1754,7 +1753,7 @@ bool CBudgetVote::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
 bool CBudgetVote::SignatureValid(bool fSignatureCheck)
 {
     std::string errorMessage;
-    std::string strMessage = vin.prevout.ToStringShort() + nProposalHash.ToString() + boost::lexical_cast<std::string>(nVote) + boost::lexical_cast<std::string>(nTime);
+    std::string strMessage = vin.prevout.ToStringShort() + nProposalHash.ToString() + std::to_string(nVote) + std::to_string(nTime);
 
     CMasternode* pmn = mnodeman.Find(vin);
 
@@ -2266,7 +2265,7 @@ bool CFinalizedBudgetVote::Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode)
     CKey keyCollateralAddress;
 
     std::string errorMessage;
-    std::string strMessage = vin.prevout.ToStringShort() + nBudgetHash.ToString() + boost::lexical_cast<std::string>(nTime);
+    std::string strMessage = vin.prevout.ToStringShort() + nBudgetHash.ToString() + std::to_string(nTime);
 
     if (!obfuScationSigner.SignMessage(strMessage, errorMessage, vchSig, keyMasternode)) {
         LogPrint("mnbudget","CFinalizedBudgetVote::Sign - Error upon calling SignMessage");
@@ -2285,7 +2284,7 @@ bool CFinalizedBudgetVote::SignatureValid(bool fSignatureCheck)
 {
     std::string errorMessage;
 
-    std::string strMessage = vin.prevout.ToStringShort() + nBudgetHash.ToString() + boost::lexical_cast<std::string>(nTime);
+    std::string strMessage = vin.prevout.ToStringShort() + nBudgetHash.ToString() + std::to_string(nTime);
 
     CMasternode* pmn = mnodeman.Find(vin);
 

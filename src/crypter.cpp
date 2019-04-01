@@ -35,12 +35,12 @@ bool CCrypter::SetKeyFromPassphrase(const SecureString& strKeyData, const std::v
         uint256 scryptHash = scrypt_salted_multiround_hash((const void*)strKeyData.c_str(), strKeyData.size(), &chSalt[0], 8, nRounds);
 
         i = EVP_BytesToKey(EVP_aes_256_cbc(), EVP_sha512(), &chSalt[0], (unsigned char *)&scryptHash, sizeof scryptHash, nRounds, chKey, chIV);
-        OPENSSL_cleanse(&scryptHash, sizeof scryptHash);
+        memory_cleanse(&scryptHash, sizeof scryptHash);
     }
 
     if (i != (int)WALLET_CRYPTO_KEY_SIZE) {
-        OPENSSL_cleanse(chKey, sizeof(chKey));
-        OPENSSL_cleanse(chIV, sizeof(chIV));
+        memory_cleanse(chKey, sizeof(chKey));
+        memory_cleanse(chIV, sizeof(chIV));
         return false;
     }
 
@@ -268,7 +268,6 @@ bool CCryptoKeyStore::Unlock(const CKeyingMaterial& vMasterKeyIn)
 
         uint256 hashSeed;
         if (CWalletDB(pwalletMain->strWalletFile).ReadCurrentSeedHash(hashSeed)) {
-
             uint256 nSeed;
             if (!GetDeterministicSeed(hashSeed, nSeed)) {
                 return error("Failed to read zYCE seed from DB. Wallet is probably corrupt.");
