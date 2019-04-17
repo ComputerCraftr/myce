@@ -15,6 +15,7 @@
 #include "net.h"
 #include "sync.h"
 #include "util.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 
@@ -516,9 +517,9 @@ public:
     int GetBlockCurrentCycle();
     int GetBlockEndCycle();
     double GetRatio();
-    int GetYeas() const;
-    int GetNays() const;
-    int GetAbstains() const;
+    int GetYeas();
+    int GetNays();
+    int GetAbstains();
     CAmount GetAmount() { return nAmount; }
     void SetAllotted(CAmount nAllotedIn) { nAlloted = nAllotedIn; }
     CAmount GetAllotted() { return nAlloted; }
