@@ -152,7 +152,7 @@ public:
         nBlockLastGoodCheckpoint = nZerocoinStartHeight;            // Last valid accumulator checkpoint
         nBlockEnforceInvalidUTXO = -1;                              // Start enforcing the invalid UTXO's
         nInvalidAmountFiltered = 0*COIN;                            // Amount of invalid coins filtered through exchanges, that should be considered valid
-        nBlockZerocoinV2 = nZerocoinStartHeight;                    // The block that zerocoin v2 becomes active
+        nBlockZerocoinV2 = nZerocoinStartHeight + 20;               // The block that zerocoin v2 becomes active
         nEnforceNewSporkKey = 1525158000;                           // Sporks signed after (GMT): Tuesday, May 1, 2018 7:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1527811200;                            // Fully reject old spork key after (GMT): Friday, June 1, 2018 12:00:00 AM
 
@@ -253,7 +253,7 @@ public:
         pchMessageStart[1] = 0x44;
         pchMessageStart[2] = 0x56;
         pchMessageStart[3] = 0x78;
-        vAlertPubKey = ParseHex("0358d5fb8000c49d38aaab6dc5d0c0a0322eff3090eff026963eb819dc3dec8439");
+        vAlertPubKey = ParseHex("0333e89c802924bb1e1b2db4f914adbcf5ee5b6fb03a9e60f9f17de5dcb54af3d1");
         nDefaultPort = 20114;
         nEnforceBlockUpgradeMajority = 4320; // 75%
         nRejectBlockOutdatedMajority = 5472; // 95%
@@ -262,12 +262,12 @@ public:
         nTargetTimespan = 10 * 60; // Myce: 10 minutes
         nTargetSpacing = 48; // Myce: 48 seconds
         nLastPOWBlock = 2100000000;
-        nPOSStartBlock = 50;
+        nPOSStartBlock = 100;
         nMaturity = 15;
         nMasternodeCountDrift = 4;
         nModifierUpdateBlock = -1; //approx Mon, 17 Apr 2017 04:00:00 GMT
         nMaxMoneyOut = 43199500 * COIN;
-        nZerocoinStartHeight = 100000;
+        nZerocoinStartHeight = 50;
         //nZerocoinStartTime = 1501776000;
         nBlockEnforceSerialRange = -1; //Enforce serial range starting this block
         nBlockRecalculateAccumulators = nZerocoinStartHeight + 10; //Trigger a recalculation of accumulators
@@ -275,7 +275,7 @@ public:
         nBlockLastGoodCheckpoint = nZerocoinStartHeight; //Last valid accumulator checkpoint
         nBlockEnforceInvalidUTXO = -1; //Start enforcing the invalid UTXO's
         nInvalidAmountFiltered = 0; //Amount of invalid coins filtered through exchanges, that should be considered valid
-        nBlockZerocoinV2 = nZerocoinStartHeight; //!> The block that zerocoin v2 becomes active
+        nBlockZerocoinV2 = nZerocoinStartHeight + 20; //!> The block that zerocoin v2 becomes active
         nEnforceNewSporkKey = 1521604800; //!> Sporks signed after Wednesday, March 21, 2018 4:00:00 AM GMT must use the new spork key
         nRejectOldSporkKey = 1522454400; //!> Reject old spork key after Saturday, March 31, 2018 12:00:00 AM GMT
 
@@ -310,12 +310,13 @@ public:
         fTestnetToBeDeprecatedFieldRPC = true;
 
         nPoolMaxTransactions = 2;
-        strSporkKey = "0358d5fb8000c49d38aaab6dc5d0c0a0322eff3090eff026963eb819dc3dec8439";
-        strSporkKeyOld = "04348C2F50F90267E64FACC65BFDC9D0EB147D090872FB97ABAE92E9A36E6CA60983E28E741F8E7277B11A7479B626AC115BA31463AC48178A5075C5A9319D4A38";
+        strSporkKey = "0333e89c802924bb1e1b2db4f914adbcf5ee5b6fb03a9e60f9f17de5dcb54af3d1";
+        strSporkKeyOld = "0333e89c802924bb1e1b2db4f914adbcf5ee5b6fb03a9e60f9f17de5dcb54af3d1";
         strObfuscationPoolDummyAddress = "y9zEimieLbYccV8jAVuD1EcsfPfm3gywyK";
         nStartMasternodePayments = 1420837558; //Fri, 09 Jan 2015 21:05:58 GMT
         nBudget_Fee_Confirmations = 3; // Number of confirmations for the finalization fee. We have to make this very short
                                        // here because we only have a 8 block finalization window on testnet
+        nZerocoinHeaderVersion = 9; //Block headers must be this version once zerocoin is active
     }
     const Checkpoints::CCheckpointData& Checkpoints() const
     {

@@ -109,19 +109,19 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
         return NULL;
     CBlock* pblock = &pblocktemplate->block; // pointer for convenience
 
+    // Make sure to create the correct block version after zerocoin is enabled
+    bool fZerocoinActive = chainActive.Height() + 1 >= Params().Zerocoin_StartHeight();
+    if (fZerocoinActive)
+        pblock->nVersion = std::max(Params().Zerocoin_HeaderVersion(), CBlock::CURRENT_VERSION);
+    else if (chainActive.Height() + 1 >= Params().ModifierUpgradeBlock() && Params().NetworkID() == CBaseChainParams::MAIN)
+        pblock->nVersion = CBlock::CURRENT_VERSION;
+    else
+        pblock->nVersion = Params().WALLET_UPGRADE_VERSION();
+
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (Params().MineBlocksOnDemand())
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
-
-    // Make sure to create the correct block version after zerocoin is enabled
-    bool fZerocoinActive = chainActive.Height() + 1 >= Params().Zerocoin_StartHeight();
-    if (fZerocoinActive)
-        pblock->nVersion = Params().Zerocoin_HeaderVersion();
-    else if (Params().NetworkID() == CBaseChainParams::MAIN)
-        pblock->nVersion = Params().WALLET_UPGRADE_VERSION();
-    else
-        pblock->nVersion = CBlock::CURRENT_VERSION;
 
     // Create coinbase tx
     CMutableTransaction txNew;
