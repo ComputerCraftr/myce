@@ -1322,15 +1322,15 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransa
         return state.DoS(10, error("AcceptToMemoryPool : Zerocoin transactions are temporarily disabled for maintenance"), REJECT_INVALID, "bad-tx");
 
     int chainHeight = chainActive.Height();
-    if (chainHeight < Params().Zerocoin_StartHeight() && !IsInitialBlockDownload() && tx.ContainsZerocoins())
-        return state.DoS(10, error("AcceptToMemoryPool: : Zerocoin is not yet active"), REJECT_INVALID, "bad-tx");
+    if (chainHeight < Params().Zerocoin_Block_V2_Start() && !IsInitialBlockDownload() && tx.ContainsZerocoins())
+        return state.DoS(10, error("AcceptToMemoryPool : Zerocoin is not yet active"), REJECT_INVALID, "bad-tx");
 
     if (!CheckTransaction(tx, chainHeight >= Params().Zerocoin_StartHeight(), true, state))
-        return state.DoS(100, error("AcceptToMemoryPool: : CheckTransaction failed"), REJECT_INVALID, "bad-tx");
+        return state.DoS(100, error("AcceptToMemoryPool : CheckTransaction failed"), REJECT_INVALID, "bad-tx");
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase())
-        return state.DoS(100, error("AcceptToMemoryPool: : coinbase as individual tx"),
+        return state.DoS(100, error("AcceptToMemoryPool : coinbase as individual tx"),
             REJECT_INVALID, "coinbase");
 
     // Coinstake is also only valid in a block, not as a loose transaction
@@ -1991,11 +1991,6 @@ int64_t GetBlockValue(int nHeight, bool fProofOfStake)
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue, int nMasternodeCount, bool isZYCEStake)
 {
     int64_t ret = 0;
-
-    if (Params().NetworkID() == CBaseChainParams::TESTNET) {
-        if (nHeight < 200)
-            return 0;
-    }
 
     ret = blockValue * .80; // Masternode receives 80% of block reward
 
@@ -2854,7 +2849,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
         //Temporarily disable zerocoin transactions for maintenance
         if (block.nTime > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) && !IsInitialBlockDownload() && tx.ContainsZerocoins()) {
-            return state.DoS(100, error("ConnectBlock() : zerocoin transactions are currently in maintenance mode"));
+            return state.DoS(100, error("ConnectBlock(): zerocoin transactions are currently in maintenance mode"));
+        }
+
+        if (pindex->nHeight < Params().Zerocoin_Block_V2_Start() && tx.ContainsZerocoins()) {
+            return state.DoS(100, error("ConnectBlock(): zerocoin is not yet active"));
         }
 
         if (tx.IsZerocoinSpend()) {

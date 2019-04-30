@@ -2120,7 +2120,7 @@ bool CWallet::SelectStakeCoins(std::list<std::unique_ptr<CStakeInput> >& listInp
     }
 
     //zYCE
-    if (GetBoolArg("-zycestake", true) && chainActive.Height() > Params().Zerocoin_Block_V2_Start() && !IsSporkActive(SPORK_16_ZEROCOIN_MAINTENANCE_MODE)) {
+    if (GetBoolArg("-zycestake", true) && chainActive.Height() >= Params().Zerocoin_Block_V2_Start() && !IsSporkActive(SPORK_16_ZEROCOIN_MAINTENANCE_MODE)) {
         //Only update zYCE set once per update interval
         bool fUpdate = false;
         static int64_t nTimeLastUpdate = 0;
@@ -3984,7 +3984,7 @@ bool CWallet::GetDestData(const CTxDestination& dest, const std::string& key, st
 void CWallet::AutoZeromint()
 {
     // Don't bother Autominting if Zerocoin Protocol isn't active
-    if (GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) || chainActive.Height() <= Params().Zerocoin_Block_V2_Start()) return;
+    if (GetAdjustedTime() > GetSporkValue(SPORK_16_ZEROCOIN_MAINTENANCE_MODE) || chainActive.Height() < Params().Zerocoin_Block_V2_Start()) return;
 
     // Wait until blockchain + masternodes are fully synced and wallet is unlocked.
     if (IsInitialBlockDownload() /*!masternodeSync.IsSynced()*/ || IsLocked()){
@@ -5151,7 +5151,7 @@ string CWallet::MintZerocoin(CAmount nValue, CWalletTx& wtxNew, vector<CDetermin
     if (nValue + Params().Zerocoin_MintFee() > GetBalance())
         return _("Insufficient funds");
 
-    if (chainActive.Height() <= Params().Zerocoin_Block_V2_Start())
+    if (chainActive.Height() < Params().Zerocoin_Block_V2_Start())
         return _("Zerocoin protocol is not yet active!");
 
     CReserveKey reservekey(this);
