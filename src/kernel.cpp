@@ -17,18 +17,16 @@
 
 using namespace std;
 
-bool fTestNet = false; //Params().NetworkID() == CBaseChainParams::TESTNET;
-
 // Modifier interval: time to elapse before new modifier is computed
 // Set to 3-hour for production network and 20-minute for test network
 unsigned int nModifierInterval;
 int nStakeTargetSpacing = 60;
-unsigned int getIntervalVersion(bool fTestNet)
+unsigned int getIntervalVersion(bool fNewInterval, bool fTestNet)
 {
     if (fTestNet)
         return MODIFIER_INTERVAL_TESTNET;
     else
-        return MODIFIER_INTERVAL;
+        return fNewInterval ? MODIFIER_INTERVAL : 3*60;
 }
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic
