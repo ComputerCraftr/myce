@@ -17,18 +17,16 @@
 
 using namespace std;
 
-bool fTestNet = false; //Params().NetworkID() == CBaseChainParams::TESTNET;
-
 // Modifier interval: time to elapse before new modifier is computed
 // Set to 3-hour for production network and 20-minute for test network
 unsigned int nModifierInterval;
 int nStakeTargetSpacing = 60;
-unsigned int getIntervalVersion(bool fTestNet)
+unsigned int getIntervalVersion(bool fNewInterval, bool fTestNet)
 {
     if (fTestNet)
         return MODIFIER_INTERVAL_TESTNET;
     else
-        return MODIFIER_INTERVAL;
+        return fNewInterval ? MODIFIER_INTERVAL : 3*60;
 }
 
 // Hard checkpoints of stake modifiers to ensure they are deterministic
@@ -304,8 +302,8 @@ bool Stake(CStakeInput* stakeInput, unsigned int nBits, unsigned int nTimeBlockF
         return error("CheckStakeKernelHash() : min age violation - nTimeBlockFrom=%d nStakeMinAge=%d nTimeTx=%d",
                      nTimeBlockFrom, nStakeMinAge, nTimeTx);
 
-    // if (CBlockHeader::CURRENT_VERSION == Params().WALLET_UPGRADE_VERSION() && chainActive.Height() + 1 < Params().WALLET_UPGRADE_BLOCK()) // Do not stake until the upgrade block
-        // return error("CheckStakeKernelHash() : INFO: staking on new wallet disabled until block %d", Params().WALLET_UPGRADE_BLOCK());
+    // if (CBlockHeader::CURRENT_VERSION == Params().WALLET_UPGRADE_VERSION() && chainActive.Height() + 1 < Params().WALLET_UPGRADE_BLOCK() && Params().NetworkID() == CBaseChainParams::MAIN)
+        // return error("CheckStakeKernelHash() : INFO: staking on new wallet disabled until block %d", Params().WALLET_UPGRADE_BLOCK()); // Do not stake until the upgrade block
 
     //grab difficulty
     uint256 bnTargetPerCoinDay;
@@ -371,8 +369,11 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
             return error("CheckProofOfStake() : INFO: read txPrev failed");
 
         //verify signature and script
-        if (block.nVersion >= Params().WALLET_UPGRADE_VERSION() && !VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0)))
-            return error("CheckProofOfStake() : VerifySignature failed on coinstake %s", tx.GetHash().ToString().c_str());
+        ScriptError serror = SCRIPT_ERR_OK;
+        if (!VerifyScript(txin.scriptSig, txPrev.vout[txin.prevout.n].scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&tx, 0), &serror))
+        {
+            return error("CheckProofOfStake() : VerifySignature failed on coinstake %s, %s", tx.GetHash().ToString().c_str(), ScriptErrorString(serror));
+        }
 
         CYceStake* yceInput = new CYceStake();
         yceInput->SetInput(txPrev, txin.prevout.n);
@@ -397,7 +398,7 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake, std::uniqu
 
     unsigned int nBlockFromTime = blockprev.nTime;
     unsigned int nTxTime = block.nTime;
-    if (block.nVersion >= Params().WALLET_UPGRADE_VERSION() && !CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime,
+    if ((block.nVersion >= Params().WALLET_UPGRADE_VERSION() || Params().NetworkID() != CBaseChainParams::MAIN) && !CheckStake(stake->GetUniqueness(), stake->GetValue(), nStakeModifier, bnTargetPerCoinDay, nBlockFromTime,
                     nTxTime, hashProofOfStake)) {
         return error("CheckProofOfStake() : INFO: check kernel failed on coinstake %s, hashProof=%s \n",
                      tx.GetHash().GetHex(), hashProofOfStake.GetHex());

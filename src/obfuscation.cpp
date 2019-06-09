@@ -2149,10 +2149,10 @@ bool CObfuScationSigner::GetKeysFromSecret(std::string strSecret, CKey& keyRet, 
     return true;
 }
 
-bool CObfuScationSigner::SignMessage(std::string strMessage, std::string& errorMessage, vector<unsigned char>& vchSig, CKey key)
+bool CObfuScationSigner::SignMessage(std::string strMessage, std::string& errorMessage, vector<unsigned char>& vchSig, CKey key, bool newMsgMagic)
 {
     CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
+    ss << (newMsgMagic ? strMessageMagic : "DarkNet Signed Message:\n");
     ss << strMessage;
 
     if (!key.SignCompact(ss.GetHash(), vchSig)) {
@@ -2163,10 +2163,10 @@ bool CObfuScationSigner::SignMessage(std::string strMessage, std::string& errorM
     return true;
 }
 
-bool CObfuScationSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage)
+bool CObfuScationSigner::VerifyMessage(CPubKey pubkey, vector<unsigned char>& vchSig, std::string strMessage, std::string& errorMessage, bool newMsgMagic)
 {
     CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
+    ss << (newMsgMagic ? strMessageMagic : "DarkNet Signed Message:\n");
     ss << strMessage;
 
     CPubKey pubkey2;
