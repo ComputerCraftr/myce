@@ -13,13 +13,10 @@
 #include "tinyformat.h"
 #include "utilstrencodings.h"
 #include "util.h"
-#include "scrypt.h" 
-
-#define CVOIDBEGIN(a)        ((const void*)&(a)) 
 
 uint256 CBlockHeader::GetHash() const
 {
-    if (nVersion > 8)
+    if (nVersion > 10)
         return Hash(BEGIN(nVersion), END(nAccumulatorCheckpoint));
     else if (nVersion > 6)
         return Hash(BEGIN(nVersion), END(nNonce));
@@ -109,7 +106,7 @@ std::vector<uint256> CBlock::GetMerkleBranch(int nIndex) const
 uint256 CBlock::CheckMerkleBranch(uint256 hash, const std::vector<uint256>& vMerkleBranch, int nIndex)
 {
     if (nIndex == -1)
-		return uint256();
+        return uint256();
     for (std::vector<uint256>::const_iterator it(vMerkleBranch.begin()); it != vMerkleBranch.end(); ++it)
     {
         if (nIndex & 1)

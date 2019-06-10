@@ -1,9 +1,11 @@
-Myce 2.0 upgrade 
+Myce 3.0.2 upgrade 
 =====================================
 
 Open your current wallet > File > Backup Wallet > Save the generated wallet.dat on a safe location
 
 More information at [myce.world](http://www.myce.world)
+
+Information on How to install Myce > https://github.com/myceworld/myce/wiki
 
 
 ### MYCE Blockchain Specification
